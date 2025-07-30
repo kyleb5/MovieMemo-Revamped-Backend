@@ -52,6 +52,25 @@ def get_public_user(request, uid):
             status=status.HTTP_404_NOT_FOUND
         )
 
+@api_view(['GET'])
+def get_username_user(request, username):
+    """
+    Get a specific user publicly based off there username
+    """
+    try:
+        user = CustomUser.objects.get(username=username)
+        serializer = PublicUserSerializer(user)
+        return Response({
+            'user': serializer.data
+        })
+    except CustomUser.DoesNotExist:
+        return Response(
+            {
+                'message': 'User not found'
+            },
+            status=status.HTTP_404_NOT_FOUND
+        )
+
 
 @api_view(['GET'])
 def check_user_exists(request, uid):
@@ -63,4 +82,16 @@ def check_user_exists(request, uid):
     return Response({
         'exists': exists,
         'uid': uid
+    })
+
+@api_view(['GET'])
+def check_user_username_exists(request, username):
+    """
+    Check if a user exists by username
+    Returns true or false.
+    """
+    exists = CustomUser.objects.filter(username=username).exists()
+    return Response({
+        'exists': exists,
+        'username': username
     })

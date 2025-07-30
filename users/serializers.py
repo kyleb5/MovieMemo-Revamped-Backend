@@ -39,5 +39,5 @@ class PublicUserSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = CustomUser
-        fields = ['id', 'uid', 'username', 'created_at']
+        fields = ['uid', 'username', 'created_at']
         read_only_fields = ['id', 'created_at']
