@@ -3,10 +3,18 @@ from .models import CustomUser
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+    
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'uid', 'username', 'created_at']
+        fields = ['id', 'email', 'uid', 'username', 'created_at', 'profile_picture']
         read_only_fields = ['id', 'created_at']
+    
+    def get_profile_picture(self, obj):
+        """Return the profile picture URL or default if none uploaded"""
+        if obj.profile_picture and obj.profile_picture.name:
+            return obj.profile_picture.url
+        return "https://cdn.kyleb.dev/pfp/defaultpfp.png"
     
     def validate_email(self, value):
         """
@@ -37,7 +45,15 @@ class PublicUserSerializer(serializers.ModelSerializer):
     """
     Serializer for public user data - excludes email for privacy
     """
+    profile_picture = serializers.SerializerMethodField()
+    
     class Meta:
         model = CustomUser
-        fields = ['uid', 'username', 'created_at']
+        fields = ['uid', 'username', 'created_at', 'profile_picture']
         read_only_fields = ['id', 'created_at']
+    
+    def get_profile_picture(self, obj):
+        """Return the profile picture URL or default if none uploaded"""
+        if obj.profile_picture and obj.profile_picture.name:
+            return obj.profile_picture.url
+        return "https://cdn.kyleb.dev/pfp/defaultpfp.png"

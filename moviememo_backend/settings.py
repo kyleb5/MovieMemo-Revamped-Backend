@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+mges0*=^!t)r@t1dfnyi%hl+vy0dma(7*4cgct)h3$n6d$05&'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'storages',  # For S3/R2 storage
     'users',
 ]
 
@@ -150,3 +152,41 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Allow credentials to be included in CORS requests
 CORS_ALLOW_CREDENTIALS = True
+
+# Cloudflare R2 Storage Configuration
+# Use the new STORAGES setting (Django 4.2+)
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'OPTIONS': {
+            'access_key': config('AWS_ACCESS_KEY_ID'),
+            'secret_key': config('AWS_SECRET_ACCESS_KEY'),
+            'bucket_name': config('AWS_STORAGE_BUCKET_NAME', default='moviememorevamped'),
+            'endpoint_url': config('AWS_S3_ENDPOINT_URL'),
+            'region_name': 'auto',
+            'addressing_style': 'path',
+            'signature_version': 's3v4',
+            'custom_domain': config('AWS_S3_CUSTOM_DOMAIN', default='cdn.kyleb.dev'),
+            'default_acl': None,
+        },
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
+
+# Legacy settings for compatibility (some packages might still use these)
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='moviememorevamped')
+AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
+AWS_S3_REGION_NAME = 'auto'  # Use 'auto' for R2
+AWS_S3_ADDRESSING_STYLE = "path"
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+
+# CDN Configuration
+AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN', default='cdn.kyleb.dev')
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+
+# Security Settings
+AWS_DEFAULT_ACL = None  # R2 doesn't use ACLs
