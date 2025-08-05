@@ -29,4 +29,8 @@ urlpatterns = [
     # GET /api/users/<uid>/
     # Get a user by UID
     path('<str:uid>/', views.get_public_user, name='get_public_user'),
+    
+    # PUT /api/users/<uid>/change-username/
+    # Change current username
+    path('<str:uid>/change_username/', views.change_username, name='change_username'),
 ]

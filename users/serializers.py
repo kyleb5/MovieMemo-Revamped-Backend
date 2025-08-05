@@ -7,7 +7,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'uid', 'username', 'created_at', 'profile_picture']
+        fields = ['id', 'email', 'uid', 'username',  'created_at', 'profile_picture']
         read_only_fields = ['id', 'created_at']
     
     def get_profile_picture(self, obj):
@@ -49,7 +49,7 @@ class PublicUserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CustomUser
-        fields = ['uid', 'username', 'created_at', 'profile_picture']
+        fields = ['uid', 'username', 'created_at', 'profile_picture', 'last_username_change']
         read_only_fields = ['id', 'created_at']
     
     def get_profile_picture(self, obj):
