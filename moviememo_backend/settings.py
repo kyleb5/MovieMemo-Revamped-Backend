@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'storages',  # For S3/R2 storage
     'users',
+    'playlists',
 ]
 
 MIDDLEWARE = [
