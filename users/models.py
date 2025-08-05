@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 import os
 import time
@@ -45,6 +46,7 @@ class CustomUser(models.Model):
     uid = models.CharField(max_length=255, unique=True)
     username = models.CharField(max_length=16, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    last_username_change = models.DateTimeField(null=True, blank=True)
     profile_picture = models.ImageField(
         upload_to=profile_picture_upload_path,
         validators=[validate_image_file_extension, validate_file_size],

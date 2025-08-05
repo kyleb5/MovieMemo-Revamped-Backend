@@ -6,6 +6,8 @@ from .serializers import CustomUserSerializer, PublicUserSerializer
 from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
+from django.utils import timezone
+from datetime import timedelta
 
 # Register HEIF support for PIL
 try:
@@ -118,7 +120,48 @@ def get_all_users(request):
         'users': serializer.data,
         'count': users.count()
     })
+    
+@api_view(['PUT'])
+def change_username(request, uid):
+    try:
+        user = CustomUser.objects.get(uid=uid)
+    except CustomUser.DoesNotExist:
+        return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    new_username = request.data.get('new_username')
+    if not new_username:
+        return Response({'message': 'New username required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if CustomUser.objects.filter(username=new_username).exists():
+        return Response({'message': 'Username already taken.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Check 30-day restriction
+    if user.last_username_change:
+        now = timezone.now()
+        next_allowed = user.last_username_change + timedelta(days=30)
+        if now < next_allowed:
+            remaining = next_allowed - now
+            days = remaining.days
+            hours, remainder = divmod(remaining.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            return Response({
+                'message': 'You can only change your username once every 30 days.',
+                'remaining': {
+                    'days': days,
+                    'hours': hours,
+                    'minutes': minutes,
+                    'seconds': seconds
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    user.username = new_username
+    user.last_username_change = timezone.now()
+    user.save()
+
+    return Response({
+        'message': 'Username changed successfully.',
+        'user': PublicUserSerializer(user).data
+    }, status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
 def upload_profile_picture(request, username):
